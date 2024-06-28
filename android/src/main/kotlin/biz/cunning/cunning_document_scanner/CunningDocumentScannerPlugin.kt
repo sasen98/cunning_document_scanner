@@ -22,7 +22,6 @@ import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.MethodChannel.Result
 import io.flutter.plugin.common.PluginRegistry
 
-
 /** CunningDocumentScannerPlugin */
 class CunningDocumentScannerPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
     private var delegate: PluginRegistry.ActivityResultListener? = null
@@ -31,7 +30,6 @@ class CunningDocumentScannerPlugin : FlutterPlugin, MethodCallHandler, ActivityA
     private lateinit var activity: Activity
     private val START_DOCUMENT_ACTIVITY: Int = 0x362738
     private val START_DOCUMENT_FB_ACTIVITY: Int = 0x362737
-
 
     /// The MethodChannel that will the communication between Flutter and native Android
     ///
@@ -46,8 +44,8 @@ class CunningDocumentScannerPlugin : FlutterPlugin, MethodCallHandler, ActivityA
 
     override fun onMethodCall(call: MethodCall, result: Result) {
         if (call.method == "getPictures") {
-            val noOfPages = call.argument<Int>("noOfPages") ?: 50;
-            val isGalleryImportAllowed = call.argument<Boolean>("isGalleryImportAllowed") ?: false;
+            val noOfPages = call.argument<Int>("noOfPages") ?: 50
+            val isGalleryImportAllowed = call.argument<Boolean>("isGalleryImportAllowed") ?: false
             this.pendingResult = result
             startScan(noOfPages, isGalleryImportAllowed)
         } else {
@@ -55,14 +53,12 @@ class CunningDocumentScannerPlugin : FlutterPlugin, MethodCallHandler, ActivityA
         }
     }
 
-
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         channel.setMethodCallHandler(null)
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
         this.activity = binding.activity
-
         addActivityResultListener(binding)
     }
 
@@ -150,21 +146,17 @@ class CunningDocumentScannerPlugin : FlutterPlugin, MethodCallHandler, ActivityA
         binding.addActivityResultListener(delegate!!)
     }
 
-
     /**
      * create intent to launch document scanner and set custom options
      */
     private fun createDocumentScanIntent(noOfPages: Int): Intent {
         val documentScanIntent = Intent(activity, DocumentScannerActivity::class.java)
 
-        documentScanIntent.putExtra(
-            DocumentScannerExtra.EXTRA_MAX_NUM_DOCUMENTS,
-            noOfPages
-        )
+        documentScanIntent.putExtra(DocumentScannerExtra.EXTRA_MAX_NUM_DOCUMENTS, noOfPages)
+        documentScanIntent.putExtra("FLASHLIGHT_ON", true)
 
         return documentScanIntent
     }
-
 
     /**
      * add document scanner result handler and launch the document scanner
@@ -181,7 +173,6 @@ class CunningDocumentScannerPlugin : FlutterPlugin, MethodCallHandler, ActivityA
             try {
                 // Use a custom request code for onActivityResult identification
                 activity.startIntentSenderForResult(it, START_DOCUMENT_ACTIVITY, null, 0, 0, 0)
-
             } catch (e: IntentSender.SendIntentException) {
                 pendingResult?.error("ERROR", "Failed to start document scanner", null)
             }
@@ -189,12 +180,7 @@ class CunningDocumentScannerPlugin : FlutterPlugin, MethodCallHandler, ActivityA
             if (it is MlKitException) {
                 val intent = createDocumentScanIntent(noOfPages)
                 try {
-                    ActivityCompat.startActivityForResult(
-                        this.activity,
-                        intent,
-                        START_DOCUMENT_FB_ACTIVITY,
-                        null
-                    )
+                    ActivityCompat.startActivityForResult(this.activity, intent, START_DOCUMENT_FB_ACTIVITY, null)
                 } catch (e: ActivityNotFoundException) {
                     pendingResult?.error("ERROR", "FAILED TO START ACTIVITY", null)
                 }
@@ -204,9 +190,7 @@ class CunningDocumentScannerPlugin : FlutterPlugin, MethodCallHandler, ActivityA
         }
     }
 
-    override fun onDetachedFromActivityForConfigChanges() {
-
-    }
+    override fun onDetachedFromActivityForConfigChanges() {}
 
     override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
         addActivityResultListener(binding)
